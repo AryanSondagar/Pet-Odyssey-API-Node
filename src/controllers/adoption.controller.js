@@ -43,3 +43,107 @@ exports.createPet = async (req, res) => {
     });
   }
 };
+
+exports.getAllPets = async (req, res) => {
+  try {
+    const pets = await Pet.find()
+      .sort({ createdAt: -1 })
+      .populate("createdBy", "name email");
+
+    res.status(200).json({
+      success: true,
+      count: pets.length,
+      data: pets,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch pets",
+    });
+  }
+};
+
+exports.getPetById = async (req, res) => {
+  try {
+    const pet = await Pet.findById(req.params.id).populate(
+      "createdBy",
+      "name email"
+    );
+
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: "Pet not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: pet,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Invalid pet ID",
+    });
+  }
+};
+
+exports.updatePet = async (req, res) => {
+  try {
+    let pet = await Pet.findById(req.params.id);
+
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: "Pet not found",
+      });
+    }
+
+    // Optional: update images
+    if (req.files && req.files.length > 0) {
+      pet.images = req.files.map((file) => file.path);
+    }
+
+    pet = await Pet.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, images: pet.images },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: pet,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.deletePet = async (req, res) => {
+  try {
+    const pet = await Pet.findById(req.params.id);
+
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: "Pet not found",
+      });
+    }
+
+    await pet.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Pet deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete pet",
+    });
+  }
+};
