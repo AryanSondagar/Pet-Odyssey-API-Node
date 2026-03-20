@@ -6,6 +6,7 @@ const userRoutes = require('./routes/user.routes');
 const adoptionRoutes = require('./routes/adoption.routes');
 const courseRoutes = require('./routes/course.routes');
 const marketplaceRoutes = require('./routes/marketplace.routes');
+const paymentRoutes = require('./routes/payment.routes')
 
 const app = express();
 
@@ -19,5 +20,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin/adoption', adoptionRoutes);
 app.use('/api/admin/course', courseRoutes);
 app.use('/api/admin/marketplace', marketplaceRoutes);
+app.use('/api/payment', paymentRoutes);
 
 module.exports = app;

@@ -6,6 +6,7 @@ const { createPet,
         getPetById,
         updatePet,
         deletePet,
+        applyForAdoption
  } = require('../controllers/adoption.controller');
 const { protect } = require('../middleware/auth.middleware');
 const { allowRoles } = require('../middleware/role.middleware');
@@ -34,5 +35,7 @@ router.put(
 );
 
 router.delete("/:id", protect, deletePet);
+
+router.post('/apply', applyForAdoption);
 
 module.exports = router;

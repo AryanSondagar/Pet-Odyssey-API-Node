@@ -1,4 +1,5 @@
 const Pet = require('../models/adoption.model');
+const AdoptionApplication = require('../models/AdoptionApplication.model');
 
 exports.createPet = async (req, res) => {
   try {
@@ -144,6 +145,56 @@ exports.deletePet = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete pet",
+    });
+  }
+};
+
+
+exports.applyForAdoption = async (req, res) => {
+  try {
+    const { petId, petName, name, email, phone, address, reason, isAdult, hasPets } = req.body;
+
+    // Validate required fields
+    if (!petId || !name || !email || !phone || !address || !reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+
+    // Check if pet exists
+    const pet = await Pet.findById(petId);
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pet not found'
+      });
+    }
+
+    // Create adoption application
+    const application = await AdoptionApplication.create({
+      petId,
+      petName,
+      name,
+      email,
+      phone,
+      address,
+      reason,
+      isAdult,
+      hasPets,
+      status: 'pending'
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Adoption application submitted successfully',
+      data: application
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 };
