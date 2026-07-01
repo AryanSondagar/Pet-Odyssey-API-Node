@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * REGISTER
@@ -54,10 +55,34 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Email and password required' });
     }
 
+    if (!JWT_SECRET) {
+      return res.status(500).json({ message: 'Server error', error: 'JWT_SECRET not configured' });
+    }
+
+    // ✅ 2. HARD-CODED ADMIN LOGIN
+    if (email === 'admin@gmail.com' && password === 'admin123') {
+      const token = jwt.sign(
+        { userId: 'admin-id', role: 'admin' },
+        JWT_SECRET,
+        { expiresIn: '1d' }
+      );
+
+      return res.json({
+        message: 'Admin login successful',
+        token,
+        user: {
+          id: 'admin-id',
+          name: 'Admin',
+          email: 'admin@gmail.com',
+          role: 'admin'
+        }
+      });
+    }
+
     // 2. Find user
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // 3. Compare password
@@ -69,7 +94,7 @@ exports.login = async (req, res) => {
     // 4. Generate JWT
     const token = jwt.sign(
       { userId: user._id ,  role: user.role },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '1d' }
     );
 
