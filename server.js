@@ -10,3 +10,7 @@ connectDB();
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Pet Odyssey API is running' });
+});
