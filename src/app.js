@@ -22,10 +22,19 @@ app.use('/api/admin/course', courseRoutes);
 app.use('/api/admin/marketplace', marketplaceRoutes);
 app.use('/api/payment', paymentRoutes);
 
+let lastMongooseError = null;
+
+const mongoose = require('mongoose');
+
+mongoose.connection.on('error', (err) => {
+  lastMongooseError = err;
+});
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    mongooseReadyState: require('mongoose').connection.readyState,
+    mongooseReadyState: mongoose.connection.readyState,
+    lastMongooseError: lastMongooseError ? lastMongooseError.message : null,
     env: {
       MONGO_URI: Boolean(process.env.MONGO_URI),
       JWT_SECRET: Boolean(process.env.JWT_SECRET),
