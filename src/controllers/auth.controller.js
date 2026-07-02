@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { connectDB } = require('../db');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
@@ -8,6 +9,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
  */
 exports.register = async (req, res) => {
   try {
+    await connectDB();
+
     const { name, email, password , role } = req.body;
 
     // 1. Validation
@@ -48,6 +51,8 @@ exports.register = async (req, res) => {
  */
 exports.login = async (req, res) => {
   try {
+    await connectDB();
+
     const { email, password } = req.body;
 
     // 1. Validation

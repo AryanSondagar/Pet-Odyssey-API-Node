@@ -16,6 +16,22 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
+app.use(async (req, res, next) => {
+  if (req.path === '/health') return next();
+
+  try {
+    await connectDB();
+    return next();
+  } catch (err) {
+    console.error('Request DB connect failed:', err && err.message ? err.message : err);
+    return res.status(503).json({
+      message: 'Service unavailable',
+      error: 'MongoDB connection failed',
+      details: err && err.message ? err.message : null,
+    });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin/adoption', adoptionRoutes);
