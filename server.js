@@ -1,6 +1,6 @@
 const app = require('./src/app');
 
-const connectDB = require('./src/db');
+const { connectDB } = require('./src/db');
 const fs = require('fs');
 const path = require('path');
 

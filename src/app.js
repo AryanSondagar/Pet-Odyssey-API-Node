@@ -6,7 +6,8 @@ const userRoutes = require('./routes/user.routes');
 const adoptionRoutes = require('./routes/adoption.routes');
 const courseRoutes = require('./routes/course.routes');
 const marketplaceRoutes = require('./routes/marketplace.routes');
-const paymentRoutes = require('./routes/payment.routes')
+const paymentRoutes = require('./routes/payment.routes');
+const { connectDB, getLastConnectError } = require('./db');
 
 const app = express();
 
@@ -30,11 +31,23 @@ mongoose.connection.on('error', (err) => {
   lastMongooseError = err;
 });
 
+const ensureDb = async () => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error('App-level DB connect failed:', err && err.message ? err.message : err);
+  }
+};
+
+ensureDb();
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
+    vercel: Boolean(process.env.VERCEL),
+    vercelEnv: process.env.VERCEL_ENV || null,
     mongooseReadyState: mongoose.connection.readyState,
-    lastMongooseError: lastMongooseError ? lastMongooseError.message : null,
+    lastMongooseError: getLastConnectError() ? getLastConnectError().message : lastMongooseError ? lastMongooseError.message : null,
     env: {
       MONGO_URI: Boolean(process.env.MONGO_URI),
       JWT_SECRET: Boolean(process.env.JWT_SECRET),
