@@ -22,6 +22,18 @@ app.use('/api/admin/course', courseRoutes);
 app.use('/api/admin/marketplace', marketplaceRoutes);
 app.use('/api/payment', paymentRoutes);
 
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    mongooseReadyState: require('mongoose').connection.readyState,
+    env: {
+      MONGO_URI: Boolean(process.env.MONGO_URI),
+      JWT_SECRET: Boolean(process.env.JWT_SECRET),
+      STRIPE_SECRET_KEY: Boolean(process.env.STRIPE_SECRET_KEY)
+    }
+  });
+});
+
 // Global error handler (log and return JSON)
 app.use((err, req, res, next) => {
 	console.error('Unhandled error:', err && err.stack ? err.stack : err);
