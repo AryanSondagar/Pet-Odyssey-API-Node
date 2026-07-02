@@ -70,12 +70,20 @@ exports.updateProduct = async (req, res) => {
 
     // If new images uploaded → replace old ones
     if (req.files && req.files.length > 0) {
-      // delete old images
-      product.productImages.forEach(img => {
-        if (fs.existsSync(img)) fs.unlinkSync(img);
-      });
+      // delete old images (best-effort, non-blocking)
+        product.productImages.forEach(img => {
+          try {
+            if (fs.existsSync(img)) {
+              fs.unlink(img, (err) => {
+                if (err) console.error('Failed to unlink image', img, err.message);
+              });
+            }
+          } catch (e) {
+            console.error('Error while attempting to remove image', img, e && e.message ? e.message : e);
+          }
+        });
 
-      product.productImages = req.files.map(file => file.path);
+        product.productImages = req.files.map(file => file.path);
     }
 
     await product.save();
@@ -98,9 +106,17 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // delete images from disk
+    // delete images from disk (best-effort)
     product.productImages.forEach(img => {
-      if (fs.existsSync(img)) fs.unlinkSync(img);
+      try {
+        if (fs.existsSync(img)) {
+          fs.unlink(img, (err) => {
+            if (err) console.error('Failed to unlink image', img, err.message);
+          });
+        }
+      } catch (e) {
+        console.error('Error while attempting to remove image', img, e && e.message ? e.message : e);
+      }
     });
 
     await product.deleteOne();

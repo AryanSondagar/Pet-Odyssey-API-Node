@@ -1,5 +1,6 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require('fs');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -8,7 +9,14 @@ const storage = multer.diskStorage({
       return cb(new Error("Invalid upload type"), null);
     }
 
-    cb(null, `uploads/${req.uploadType}`);
+    const dest = `uploads/${req.uploadType}`;
+    try {
+      // ensure the destination directory exists
+      fs.mkdirSync(dest, { recursive: true });
+      cb(null, dest);
+    } catch (err) {
+      cb(err, null);
+    }
   },
 
   filename: (req, file, cb) => {

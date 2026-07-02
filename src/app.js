@@ -22,4 +22,11 @@ app.use('/api/admin/course', courseRoutes);
 app.use('/api/admin/marketplace', marketplaceRoutes);
 app.use('/api/payment', paymentRoutes);
 
+// Global error handler (log and return JSON)
+app.use((err, req, res, next) => {
+	console.error('Unhandled error:', err && err.stack ? err.stack : err);
+	if (res.headersSent) return next(err);
+	res.status(500).json({ message: 'Server error', error: err && err.message ? err.message : String(err) });
+});
+
 module.exports = app;
