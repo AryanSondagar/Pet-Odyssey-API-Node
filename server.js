@@ -6,6 +6,10 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
+console.log('ENV MONGO_URI set:', Boolean(process.env.MONGO_URI));
+console.log('ENV JWT_SECRET set:', Boolean(process.env.JWT_SECRET));
+console.log('ENV STRIPE_SECRET_KEY set:', Boolean(process.env.STRIPE_SECRET_KEY));
+
 // Ensure upload directories exist (avoids multer destination errors on first upload)
 try {
   const base = path.join(__dirname, 'uploads');

@@ -3,6 +3,10 @@ const fs = require("fs");
 
 exports.addProduct = async (req, res) => {
   try {
+    if (require('mongoose').connection.readyState !== 1) {
+      return res.status(503).json({ message: 'Server error', error: 'MongoDB not connected' });
+    }
+
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "At least 1 image required" });
     }
@@ -24,7 +28,16 @@ exports.addProduct = async (req, res) => {
       product,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Marketplace addProduct error:', {
+      message: err.message,
+      stack: err.stack,
+      readyState: require('mongoose').connection.readyState,
+    });
+    res.status(500).json({
+      message: 'Server error',
+      error: err.message,
+      readyState: require('mongoose').connection.readyState,
+    });
   }
 };
 

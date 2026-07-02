@@ -59,6 +59,10 @@ exports.login = async (req, res) => {
       return res.status(500).json({ message: 'Server error', error: 'JWT_SECRET not configured' });
     }
 
+    if (require('mongoose').connection.readyState !== 1) {
+      return res.status(503).json({ message: 'Server error', error: 'MongoDB not connected' });
+    }
+
     // ✅ 2. HARD-CODED ADMIN LOGIN
     if (email === 'admin@gmail.com' && password === 'admin123') {
       const token = jwt.sign(
@@ -110,6 +114,15 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Auth login error:', {
+      message: error.message,
+      stack: error.stack,
+      readyState: require('mongoose').connection.readyState,
+    });
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message,
+      readyState: require('mongoose').connection.readyState,
+    });
   }
 };
