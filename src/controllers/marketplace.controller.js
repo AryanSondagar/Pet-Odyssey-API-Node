@@ -1,5 +1,6 @@
 const Product = require("../models/marketplace.model");
-const fs = require("fs");
+const cloudinary = require("../config/cloudinary");
+const uploadToCloudinary = require("../utils/uploadToCloudinary");
 
 exports.addProduct = async (req, res) => {
   try {
@@ -11,7 +12,11 @@ exports.addProduct = async (req, res) => {
       return res.status(400).json({ message: "At least 1 image required" });
     }
 
-    const images = req.files.map((file) => file.path);
+    const images = await Promise.all(
+      req.files.map((file) =>
+        uploadToCloudinary(file.buffer, `uploads/${req.uploadType}`)
+      )
+    );
 
     const product = await Product.create({
       productName: req.body.productName,
@@ -81,22 +86,21 @@ exports.updateProduct = async (req, res) => {
     // Update fields
     Object.assign(product, req.body);
 
-    // If new images uploaded → replace old ones
     if (req.files && req.files.length > 0) {
-      // delete old images (best-effort, non-blocking)
-        product.productImages.forEach(img => {
-          try {
-            if (fs.existsSync(img)) {
-              fs.unlink(img, (err) => {
-                if (err) console.error('Failed to unlink image', img, err.message);
-              });
-            }
-          } catch (e) {
-            console.error('Error while attempting to remove image', img, e && e.message ? e.message : e);
-          }
-        });
+      // delete old images from Cloudinary (best-effort, non-blocking)
+      Promise.all(
+        (product.productImages || []).map((img) =>
+          cloudinary.uploader.destroy(img.public_id).catch((e) =>
+            console.error('Failed to delete Cloudinary image', img.public_id, e.message)
+          )
+        )
+      );
 
-        product.productImages = req.files.map(file => file.path);
+      product.productImages = await Promise.all(
+        req.files.map((file) =>
+          uploadToCloudinary(file.buffer, `uploads/${req.uploadType}`)
+        )
+      );
     }
 
     await product.save();
@@ -119,18 +123,13 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // delete images from disk (best-effort)
-    product.productImages.forEach(img => {
-      try {
-        if (fs.existsSync(img)) {
-          fs.unlink(img, (err) => {
-            if (err) console.error('Failed to unlink image', img, err.message);
-          });
-        }
-      } catch (e) {
-        console.error('Error while attempting to remove image', img, e && e.message ? e.message : e);
-      }
-    });
+    await Promise.all(
+      (product.productImages || []).map((img) =>
+        cloudinary.uploader.destroy(img.public_id).catch((e) =>
+          console.error('Failed to delete Cloudinary image', img.public_id, e.message)
+        )
+      )
+    );
 
     await product.deleteOne();
 

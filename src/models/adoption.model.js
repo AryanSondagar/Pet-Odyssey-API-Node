@@ -27,7 +27,12 @@ const petSchema = new mongoose.Schema(
       required: true
     },
     images: {
-      type: [String], // image paths
+      type: [
+        {
+          url: { type: String, required: true },
+          public_id: { type: String, required: true },
+        },
+      ],
       required: true,
       validate: [arr => arr.length >= 3 && arr.length <= 8, 'Min 3, Max 8 images']
     },

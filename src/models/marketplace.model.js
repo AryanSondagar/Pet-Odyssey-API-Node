@@ -23,7 +23,12 @@ const productSchema = new mongoose.Schema(
       type: String,
     },
     productImages: {
-      type: [String], // store image paths / URLs
+      type: [
+        {
+          url: { type: String, required: true },
+          public_id: { type: String, required: true },
+        },
+      ],
       required: true,
       validate: [arrayLimit, "Min 1 and Max 5 images allowed"],
     },

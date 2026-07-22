@@ -30,6 +30,10 @@ router.get("/:id", getPetById);
 router.put(
   "/:id",
   protect,
+  (req, res, next) => {
+    req.uploadType = "pets";
+    next();
+  },
   upload.array("images", 8),
   updatePet
 );

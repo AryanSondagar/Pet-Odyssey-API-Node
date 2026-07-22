@@ -1,5 +1,7 @@
 const Pet = require('../models/adoption.model');
 const AdoptionApplication = require('../models/AdoptionApplication.model');
+const cloudinary = require('../config/cloudinary');
+const uploadToCloudinary = require('../utils/uploadToCloudinary');
 
 exports.createPet = async (req, res) => {
   try {
@@ -19,7 +21,9 @@ exports.createPet = async (req, res) => {
       });
     }
 
-    const imagePaths = req.files.map(file => file.path);
+    const images = await Promise.all(
+      req.files.map((file) => uploadToCloudinary(file.buffer, `uploads/${req.uploadType}`))
+    );
 
     const pet = await Pet.create({
       petName,
@@ -28,7 +32,7 @@ exports.createPet = async (req, res) => {
       petAge,
       petSellingPrice,
       ownerMobileNumber,
-      images: imagePaths,
+      images, // [{ url, public_id }, ...]
       createdBy: req.user.userId
     });
 
@@ -101,9 +105,21 @@ exports.updatePet = async (req, res) => {
       });
     }
 
-    // Optional: update images
     if (req.files && req.files.length > 0) {
-      pet.images = req.files.map((file) => file.path);
+      // delete old images from Cloudinary (best-effort, non-blocking)
+      Promise.all(
+        (pet.images || []).map((img) =>
+          cloudinary.uploader.destroy(img.public_id).catch((e) =>
+            console.error('Failed to delete Cloudinary image', img.public_id, e.message)
+          )
+        )
+      );
+
+      pet.images = await Promise.all(
+        req.files.map((file) =>
+          uploadToCloudinary(file.buffer, `uploads/${req.uploadType}`)
+        )
+      );
     }
 
     pet = await Pet.findByIdAndUpdate(
@@ -135,6 +151,14 @@ exports.deletePet = async (req, res) => {
       });
     }
 
+    await Promise.all(
+      (pet.images || []).map((img) =>
+        cloudinary.uploader.destroy(img.public_id).catch((e) =>
+          console.error('Failed to delete Cloudinary image', img.public_id, e.message)
+        )
+      )
+    );
+
     await pet.deleteOne();
 
     res.status(200).json({
@@ -154,7 +178,6 @@ exports.applyForAdoption = async (req, res) => {
   try {
     const { petId, petName, name, email, phone, address, reason, isAdult, hasPets } = req.body;
 
-    // Validate required fields
     if (!petId || !name || !email || !phone || !address || !reason) {
       return res.status(400).json({
         success: false,
@@ -162,7 +185,6 @@ exports.applyForAdoption = async (req, res) => {
       });
     }
 
-    // Check if pet exists
     const pet = await Pet.findById(petId);
     if (!pet) {
       return res.status(404).json({
@@ -171,7 +193,6 @@ exports.applyForAdoption = async (req, res) => {
       });
     }
 
-    // Create adoption application
     const application = await AdoptionApplication.create({
       petId,
       petName,
