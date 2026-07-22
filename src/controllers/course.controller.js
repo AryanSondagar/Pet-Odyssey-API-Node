@@ -55,6 +55,10 @@ exports.getAllCourses = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate("createdBy", "name email");
 
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     res.status(200).json({
       success: true,
       count: courses.length,
