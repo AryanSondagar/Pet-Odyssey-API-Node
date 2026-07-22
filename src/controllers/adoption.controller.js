@@ -33,7 +33,7 @@ exports.createPet = async (req, res) => {
       petSellingPrice,
       ownerMobileNumber,
       images, // [{ url, public_id }, ...]
-      createdBy: req.user.userId
+      createdBy: req.user.userId || req.user.id
     });
 
     res.status(201).json({

@@ -33,7 +33,7 @@ exports.createCourse = async (req, res) => {
       price,
       courseDate,
       timeSlot,
-      createdBy: req.user.userId
+      createdBy: req.user.userId || req.user.id
     });
 
     res.status(201).json({

@@ -25,7 +25,7 @@ exports.addProduct = async (req, res) => {
       productStock: req.body.productStock,
       productDescription: req.body.productDescription,
       productImages: images,
-      createdBy: req.user.id, // admin id from JWT
+      createdBy: req.user.userId || req.user.id,
     });
 
     res.status(201).json({
