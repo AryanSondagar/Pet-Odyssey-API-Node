@@ -38,6 +38,8 @@ app.use('/api/admin/adoption', adoptionRoutes);
 app.use('/api/admin/course', courseRoutes);
 app.use('/api/admin/marketplace', marketplaceRoutes);
 app.use('/api/payment', paymentRoutes);
+app.get('/', (req, res) => res.send('API is running'));
+app.get('/api', (req, res) => res.json({ status: 'ok' }));
 
 let lastMongooseError = null;
 
