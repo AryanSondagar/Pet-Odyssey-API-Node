@@ -2,7 +2,9 @@ const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { connectDB } = require('../db');
+const mongoose = require('mongoose');
 const JWT_SECRET = process.env.JWT_SECRET;
+const HARD_CODED_ADMIN_ID = '000000000000000000000001';
 
 /**
  * REGISTER
@@ -71,7 +73,7 @@ exports.login = async (req, res) => {
     // ✅ 2. HARD-CODED ADMIN LOGIN
     if (email === 'admin@gmail.com' && password === 'admin123') {
       const token = jwt.sign(
-        { userId: 'admin-id', role: 'admin' },
+        { userId: HARD_CODED_ADMIN_ID, role: 'admin' },
         JWT_SECRET,
         { expiresIn: '1d' }
       );
@@ -80,7 +82,7 @@ exports.login = async (req, res) => {
         message: 'Admin login successful',
         token,
         user: {
-          id: 'admin-id',
+          id: HARD_CODED_ADMIN_ID,
           name: 'Admin',
           email: 'admin@gmail.com',
           role: 'admin'

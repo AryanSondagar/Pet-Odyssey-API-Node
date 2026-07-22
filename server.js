@@ -10,6 +10,10 @@ console.log('ENV MONGO_URI set:', Boolean(process.env.MONGO_URI));
 console.log('ENV MONGO_URI protocol:', process.env.MONGO_URI ? process.env.MONGO_URI.split('://')[0] : 'missing');
 console.log('ENV JWT_SECRET set:', Boolean(process.env.JWT_SECRET));
 console.log('ENV STRIPE_SECRET_KEY set:', Boolean(process.env.STRIPE_SECRET_KEY));
+console.log('ENV CLOUDINARY_URL set:', Boolean(process.env.CLOUDINARY_URL));
+console.log('ENV CLOUDINARY_CLOUD_NAME set:', Boolean(process.env.CLOUDINARY_CLOUD_NAME));
+console.log('ENV CLOUDINARY_API_KEY set:', Boolean(process.env.CLOUDINARY_API_KEY));
+console.log('ENV CLOUDINARY_API_SECRET set:', Boolean(process.env.CLOUDINARY_API_SECRET));
 
 // Ensure upload directories exist (avoids multer destination errors on first upload)
 try {

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const cloudinary = require('./config/cloudinary');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const adoptionRoutes = require('./routes/adoption.routes');
@@ -10,6 +11,8 @@ const paymentRoutes = require('./routes/payment.routes');
 const { connectDB, getLastConnectError } = require('./db');
 
 const app = express();
+
+console.log('Cloudinary configured:', cloudinary.isConfigured);
 
 // Middlewares
 app.use(cors());
@@ -65,6 +68,7 @@ app.get('/health', (req, res) => {
     vercel: Boolean(process.env.VERCEL),
     vercelEnv: process.env.VERCEL_ENV || null,
     mongooseReadyState: mongoose.connection.readyState,
+    cloudinaryConfigured: cloudinary.isConfigured,
     lastMongooseError: getLastConnectError() ? getLastConnectError().message : lastMongooseError ? lastMongooseError.message : null,
     env: {
       MONGO_URI: Boolean(process.env.MONGO_URI),
