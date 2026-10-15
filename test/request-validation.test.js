@@ -1,13 +1,11 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const {
-  createIntentBody,
-  loginBody,
-  petBody,
-  productBody,
-  registerBody,
-} = require('../src/validation/request.schemas');
-const { validateBody } = require('../src/middleware/validate-body.middleware');
+const { loginBody, registerBody } = require('../src/modules/auth/auth.schema');
+const { petBody } = require('../src/modules/adoption/adoption.schema');
+const { productBody } = require('../src/modules/marketplace/marketplace.schema');
+const { createIntentBody } = require('../src/modules/payments/payment.schema');
+const { courseBody } = require('../src/modules/courses/course.schema');
+const { validateBody } = require('../src/common/middleware/validate-body.middleware');
 
 test('validates registration and login input without allowing public role assignment', () => {
   assert.equal(registerBody.safeParse({
@@ -66,6 +64,14 @@ test('accepts multipart numeric fields and rejects empty numeric values', () => 
     petAge: '',
     petSellingPrice: '100',
     ownerMobileNumber: '1234567890',
+  }).success, false);
+  assert.equal(courseBody.safeParse({
+    city: 'Toronto',
+    state: 'ON',
+    category: 'Training',
+    price: 'invalid',
+    courseDate: '2026-12-01',
+    timeSlot: ['Morning'],
   }).success, false);
 });
 

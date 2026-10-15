@@ -1,11 +1,11 @@
 const cloudinary = require("cloudinary").v2;
-
+const { env } = require('./env');
 const {
   CLOUDINARY_URL,
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
-} = process.env;
+} = env;
 
 const missingVars = [];
 

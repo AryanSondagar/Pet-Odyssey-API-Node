@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const express = require('express');
-const { createRateLimiter } = require('../src/middleware/rate-limit.middleware');
+const { createRateLimiter } = require('../src/common/middleware/rate-limit.middleware');
 
 test('returns 429 after the configured request limit is exceeded', async (t) => {
   const app = express();

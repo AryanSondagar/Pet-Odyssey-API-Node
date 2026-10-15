@@ -2,9 +2,11 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
 process.env.STRIPE_SECRET_KEY = 'sk_test_payment-route-test';
+process.env.JWT_SECRET = 'payment-route-auth-test-secret';
 
-const paymentRoutes = require('../src/routes/payment.routes');
-const { protect } = require('../src/middleware/auth.middleware');
+const paymentRoutes = require('../src/modules/payments/payment.routes');
+const { protect } = require('../src/common/middleware/auth.middleware');
+const { createAccessToken } = require('./helpers/auth');
 
 test('Payment Intent creation requires authentication and webhooks are signature-authenticated', () => {
   const protectedPaths = paymentRoutes.stack
@@ -42,4 +44,10 @@ test('Payment Intent creation requires authentication and webhooks are signature
 
   assert.equal(response.statusCode, 401);
   assert.equal(continued, false);
+
+  let authenticated = false;
+  protect({ cookies: { accessToken: createAccessToken('507f1f77bcf86cd799439011') } }, response, () => {
+    authenticated = true;
+  });
+  assert.equal(authenticated, true);
 });

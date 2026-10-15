@@ -4,9 +4,9 @@ const { test } = require('node:test');
 
 process.env.JWT_SECRET = 'auth-refresh-test-secret';
 
-const User = require('../src/models/user.model');
-const RefreshSession = require('../src/models/refreshSession.model');
-const authController = require('../src/controllers/auth.controller');
+const User = require('../src/modules/users/user.model');
+const RefreshSession = require('../src/modules/auth/refreshSession.model');
+const authController = require('../src/modules/auth/auth.controller');
 
 const hashToken = (token) =>
   crypto.createHash('sha256').update(token).digest('hex');

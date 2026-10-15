@@ -5,19 +5,20 @@ const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const Stripe = require('stripe');
-const { MongoMemoryReplSet } = require('mongodb-memory-server');
+const { startMongoReplicaSet, stopMongoReplicaSet } = require('./helpers/mongo');
 
 process.env.STRIPE_SECRET_KEY = 'sk_test_payment-webhook-tests';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_payment-webhook-test-secret';
 process.env.JWT_SECRET = 'payment-integration-jwt-secret';
 
-const Course = require('../src/models/course.model');
-const Order = require('../src/models/order.model');
-const Product = require('../src/models/marketplace.model');
-const ProcessedStripeEvent = require('../src/models/processedStripeEvent.model');
-const User = require('../src/models/user.model');
-const paymentController = require('../src/controllers/payment.controller');
-const orderController = require('../src/controllers/order.controller');
+const Course = require('../src/modules/courses/course.model');
+const Order = require('../src/modules/orders/order.model');
+const Product = require('../src/modules/marketplace/marketplace.model');
+const ProcessedStripeEvent = require('../src/modules/payments/processedStripeEvent.model');
+const User = require('../src/modules/users/user.model');
+const paymentController = require('../src/modules/payments/payment.controller');
+const paymentService = require('../src/modules/payments/payment.service');
+const orderController = require('../src/modules/orders/order.controller');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 let mongo;
@@ -28,8 +29,7 @@ let refundCalls = [];
 let refundsToFail = 0;
 
 before(async () => {
-  mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
-  await mongoose.connect(mongo.getUri(), { dbName: 'pet-odyssey-test' });
+  mongo = await startMongoReplicaSet('pet-odyssey-test');
   await Promise.all([
     Order.init(),
     Product.init(),
@@ -56,8 +56,7 @@ before(async () => {
 after(async () => {
   paymentController.stripe.paymentIntents.create = originalStripeCreate;
   paymentController.stripe.refunds.create = originalStripeRefundCreate;
-  await mongoose.disconnect();
-  await mongo.stop();
+  await stopMongoReplicaSet(mongo);
 });
 
 beforeEach(async () => {
@@ -269,10 +268,10 @@ test('concurrent purchases for the final unit cannot oversell or partially fulfi
     }),
   ];
 
-  const responses = await Promise.all(events.map((event) => invokeWebhook(event)));
+  const outcomes = await Promise.all(events.map((event) => paymentService.processStripeEvent(event)));
   const orders = await Order.find({ _id: { $in: [firstOrder._id, secondOrder._id] } });
 
-  assert.equal(responses.every((response) => response.statusCode === 200), true);
+  assert.equal(outcomes.every((outcome) => outcome.received), true);
   assert.deepEqual(orders.map((order) => order.status).sort(), ['failed', 'paid']);
   assert.equal((await Product.findById(product._id)).productStock, 0);
   assert.equal(await ProcessedStripeEvent.countDocuments(), 2);
@@ -397,7 +396,7 @@ test('protects user history and limits the all-order view to administrators', as
   await createPendingOrder({ userId: user._id, productId: product._id });
   const app = express();
   app.use(cookieParser());
-  app.use('/api', require('../src/routes/order.routes'));
+  app.use('/api', require('../src/modules/orders/order.routes'));
   const server = app.listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   t.after(() => new Promise((resolve, reject) => {

@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 
 process.env.STRIPE_SECRET_KEY = 'sk_test_payment-intent-tests';
 
-const Course = require('../src/models/course.model');
-const Order = require('../src/models/order.model');
-const Product = require('../src/models/marketplace.model');
-const paymentController = require('../src/controllers/payment.controller');
+const Course = require('../src/modules/courses/course.model');
+const Order = require('../src/modules/orders/order.model');
+const Product = require('../src/modules/marketplace/marketplace.model');
+const paymentController = require('../src/modules/payments/payment.controller');
 
 test('creates Payment Intent using catalog prices and stores a pending order', async (t) => {
   const originalProductFind = Product.find;
