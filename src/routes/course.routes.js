@@ -8,12 +8,15 @@ const { createCourse ,
         deleteCourse } = require('../controllers/course.controller');
 const { protect } = require('../middleware/auth.middleware');
 const { allowRoles } = require('../middleware/role.middleware');
+const { validateBody } = require('../middleware/validate-body.middleware');
+const { courseBody, courseUpdateBody } = require('../validation/request.schemas');
 
 // Create course (Admin)
 router.post(
   '/',
   protect,
   allowRoles('admin'),
+  validateBody(courseBody),
   createCourse
 );
 
@@ -27,10 +30,12 @@ router.get('/:id', getCourseById);
 router.put(
   "/:id",
   protect,
+  allowRoles('admin'),
+  validateBody(courseUpdateBody),
   updateCourse
 );
 
 // DELETE COURSE (Admin)
-router.delete("/:id", protect, deleteCourse);
+router.delete("/:id", protect, allowRoles('admin'), deleteCourse);
 
 module.exports = router;

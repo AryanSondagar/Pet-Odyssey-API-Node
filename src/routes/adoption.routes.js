@@ -11,6 +11,12 @@ const { createPet,
 const { protect } = require('../middleware/auth.middleware');
 const { allowRoles } = require('../middleware/role.middleware');
 const upload = require('../middleware/upload.middleware');
+const { validateBody } = require('../middleware/validate-body.middleware');
+const {
+  adoptionApplicationBody,
+  petBody,
+  petUpdateBody,
+} = require('../validation/request.schemas');
 
 router.post(
   '/',
@@ -21,6 +27,7 @@ router.post(
     next();
   },
   upload.array('petImages', 8), // max 8
+  validateBody(petBody),
   createPet
 );
 
@@ -30,16 +37,18 @@ router.get("/:id", getPetById);
 router.put(
   "/:id",
   protect,
+  allowRoles('admin'),
   (req, res, next) => {
     req.uploadType = "pets";
     next();
   },
   upload.array("images", 8),
+  validateBody(petUpdateBody),
   updatePet
 );
 
-router.delete("/:id", protect, deletePet);
+router.delete("/:id", protect, allowRoles('admin'), deletePet);
 
-router.post('/apply', applyForAdoption);
+router.post('/apply', validateBody(adoptionApplicationBody), applyForAdoption);
 
 module.exports = router;

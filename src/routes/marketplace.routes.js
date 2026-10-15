@@ -9,6 +9,8 @@ const { addProduct,
 const { protect  } = require('../middleware/auth.middleware');
 const { allowRoles } = require('../middleware/role.middleware');
 const upload = require('../middleware/upload.middleware');
+const { validateBody } = require('../middleware/validate-body.middleware');
+const { productBody, productUpdateBody } = require('../validation/request.schemas');
 
 // CREATE 
 router.post(
@@ -20,6 +22,7 @@ router.post(
     next();
   },
   upload.array('productImages', 5), // max 8
+  validateBody(productBody),
   addProduct
 );
 
@@ -31,15 +34,17 @@ router.get("/:id", getProductById);
 router.put(
   "/:id",
   protect,
+  allowRoles('admin'),
   (req, res, next) => {
     req.uploadType = "products";
     next();
   },
   upload.array("productImages", 5),
+  validateBody(productUpdateBody),
   updateProduct
 );
 
 // DELETE
-router.delete("/:id", protect, deleteProduct);
+router.delete("/:id", protect, allowRoles('admin'), deleteProduct);
 
 module.exports = router;
